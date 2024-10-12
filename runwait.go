@@ -2,6 +2,7 @@ package groups
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -73,7 +74,7 @@ func RunWaitErr(functions []FunctionErr, Opts *Options) {
 	waitChan := make(chan struct{}, len(functions))
 	length := len(functions)
 	to := Opts.Timeout
-	fmt.Printf("Starting %d jobs. Timeout = %s\n", length, to.String())
+	fmt.Printf("Starting %d jobs and collecting errs. Timeout = %s\n", length, to.String())
 	if Opts.Ctx == nil {
 		Opts.Ctx, Opts.cancel = context.WithTimeout(context.Background(), to)
 	} else {
@@ -87,7 +88,7 @@ func RunWaitErr(functions []FunctionErr, Opts *Options) {
 			// fmt.Printf("Starting job #%d\n", idx)
 			err := f()
 			if err != nil {
-				errGroup = fmt.Errorf("%s %w", errGroup, err)
+				errGroup = errors.Join(errGroup, fmt.Errorf(" %w", err))
 			}
 			waitChan <- struct{}{}
 		}(fu)
