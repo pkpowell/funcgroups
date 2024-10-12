@@ -3,6 +3,7 @@ package groups
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"time"
 )
 
@@ -64,4 +65,16 @@ func RunWait(functions []Function, Opts *Options) {
 			}
 		}
 	}
+}
+
+func CallerName(skip int) string {
+	pc, _, _, ok := runtime.Caller(skip + 1)
+	if !ok {
+		return ""
+	}
+	f := runtime.FuncForPC(pc)
+	if f == nil {
+		return ""
+	}
+	return f.Name()
 }
