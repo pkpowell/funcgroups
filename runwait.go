@@ -48,7 +48,7 @@ func RunWait(functions []Function, opts *Options) {
 	for {
 		select {
 		case <-opts.Ctx.Done():
-			fmt.Printf("Canceling jobs %s\n", opts.Ctx.Err())
+			// fmt.Printf("Returning")
 			return
 
 		case <-waitChan:
@@ -92,7 +92,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 	for {
 		select {
 		case <-opts.Ctx.Done():
-			fmt.Printf("Canceling jobs %s\n", opts.Ctx.Err())
+			// fmt.Printf("Returning")
 			return
 
 		case <-waitChan:
