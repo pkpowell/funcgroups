@@ -50,7 +50,7 @@ func RunWait(functions []Function, Opts *Options) {
 			return
 		case <-waitChan:
 			length--
-			fmt.Printf("length = %d", length)
+			fmt.Printf("length = %d\n", length)
 			if length == 0 {
 				fmt.Printf("All jobs done\n")
 				if Opts.Ctx.Err() != nil {
