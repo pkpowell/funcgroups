@@ -35,9 +35,9 @@ func RunWait(functions []Function, Opts *Options) {
 	}
 	// ctx, cancel := context.WithTimeout(Opts.Ctx, to)
 
-	for idx, fu := range functions {
+	for _, fu := range functions {
 		go func(f Function) {
-			fmt.Printf("Starting job #%d\n", idx)
+			// fmt.Printf("Starting job #%d\n", idx)
 			f()
 			waitChan <- struct{}{}
 		}(fu)
@@ -51,17 +51,17 @@ func RunWait(functions []Function, Opts *Options) {
 			return
 		case <-waitChan:
 			length--
-			fmt.Printf("length = %d\n", length)
+			// fmt.Printf("length = %d\n", length)
 			if length == 0 {
-				fmt.Printf("All jobs done\n")
+				fmt.Printf("All %d jobs done\n", length)
 				if Opts.Ctx.Err() != nil {
 					fmt.Printf("Context error %s\n", Opts.Ctx.Err())
 				}
 				Opts.cancel()
 				return
 
-			} else {
-				fmt.Printf("Still waiting...\n")
+				// } else {
+				// 	fmt.Printf("Still waiting...\n")
 			}
 		}
 	}
