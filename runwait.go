@@ -48,7 +48,6 @@ func RunWait(functions []Function, opts *Options) {
 	for {
 		select {
 		case <-opts.Ctx.Done():
-			// fmt.Printf("Returning")
 			return
 
 		case <-waitChan:
@@ -92,7 +91,6 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 	for {
 		select {
 		case <-opts.Ctx.Done():
-			// fmt.Printf("Returning")
 			return
 
 		case <-waitChan:
@@ -107,15 +105,3 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 		}
 	}
 }
-
-// func CallerName(skip int) string {
-// 	pc, _, _, ok := runtime.Caller(skip + 1)
-// 	if !ok {
-// 		return ""
-// 	}
-// 	f := runtime.FuncForPC(pc)
-// 	if f == nil {
-// 		return ""
-// 	}
-// 	return f.Name()
-// }
