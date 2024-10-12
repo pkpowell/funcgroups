@@ -102,12 +102,12 @@ func RunWaitErr(functions []FunctionErr, Opts *Options) {
 		case <-waitChan:
 			length--
 			if length == 0 {
-				fmt.Printf("All %d jobs done\n", length)
+				fmt.Printf("All %d jobs done\n", len(functions))
 				if errGroup != nil {
 					fmt.Printf("Errors encountered %s\n", errGroup)
 				}
 				Opts.cancel()
-				return
+				// return
 			}
 		}
 	}
