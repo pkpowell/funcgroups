@@ -7,7 +7,7 @@ import (
 )
 
 type Function func()
-type FunctionErr func() error
+type FunctionErr func() (err error)
 
 type Options struct {
 	Timeout time.Duration
