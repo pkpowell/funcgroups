@@ -16,7 +16,7 @@ type Options struct {
 var timeout = 5 * time.Second
 
 // Defaults
-var Opts = Options{
+var opts = Options{
 	Timeout: timeout,
 	Ctx:     context.Background(),
 	// Cancel:  cancel,
@@ -36,7 +36,7 @@ func RunWait(functions []Function, Opts *Options) {
 
 	for idx, fu := range functions {
 		go func(f Function) {
-			fmt.Printf("Starting job no. %d\n", idx)
+			fmt.Printf("Starting job #%d\n", idx)
 			f()
 			waitChan <- struct{}{}
 		}(fu)
@@ -52,7 +52,10 @@ func RunWait(functions []Function, Opts *Options) {
 			length--
 			fmt.Printf("length = %d", length)
 			if length == 0 {
-				fmt.Printf("All jobs done %s\n", Opts.Ctx.Err())
+				fmt.Printf("All jobs done\n")
+				if Opts.Ctx.Err() != nil {
+					fmt.Printf("Context error %s\n", Opts.Ctx.Err())
+				}
 				Opts.cancel()
 				return
 
