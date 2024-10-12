@@ -22,15 +22,15 @@ var timeout = 5 * time.Second
 var opts = Options{
 	Timeout: timeout,
 	Ctx:     context.Background(),
-	// Cancel:  cancel,
 }
 
 // RunWait executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
 func RunWait(functions []Function, opts *Options) {
-	waitChan := make(chan struct{}, len(functions))
-	count := len(functions)
-	length := count
+	length := len(functions)
+	count := length
+	waitChan := make(chan struct{}, length)
+
 	if opts.Ctx == nil {
 		opts.Ctx, opts.cancel = context.WithTimeout(context.Background(), opts.Timeout)
 	} else {
@@ -49,18 +49,16 @@ func RunWait(functions []Function, opts *Options) {
 		select {
 		case <-opts.Ctx.Done():
 			fmt.Printf("Canceling jobs %s\n", opts.Ctx.Err())
-			opts.cancel()
 			return
+
 		case <-waitChan:
 			count--
-
 			if count == 0 {
 				fmt.Printf("All %d jobs done\n", length)
 				if opts.Ctx.Err() != nil {
 					fmt.Printf("Context error %s\n", opts.Ctx.Err())
 				}
 				opts.cancel()
-				return
 			}
 		}
 	}
@@ -69,11 +67,10 @@ func RunWait(functions []Function, opts *Options) {
 // RunWaitErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
 func RunWaitErr(functions []FunctionErr, opts *Options) {
-	waitChan := make(chan struct{}, len(functions))
-	count := len(functions)
-	length := count
+	length := len(functions)
+	count := length
+	waitChan := make(chan struct{}, length)
 
-	// to := opts.Timeout
 	fmt.Printf("Starting %d jobs and collecting errs. Timeout = %s\n", length, opts.Timeout.String())
 	if opts.Ctx == nil {
 		opts.Ctx, opts.cancel = context.WithTimeout(context.Background(), opts.Timeout)
@@ -84,7 +81,6 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 
 	for _, fu := range functions {
 		go func(f FunctionErr) {
-			// fmt.Printf("Starting job #%d\n", idx)
 			err := f()
 			if err != nil {
 				errGroup = errors.Join(errGroup, err)
@@ -97,8 +93,8 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 		select {
 		case <-opts.Ctx.Done():
 			fmt.Printf("Canceling jobs %s\n", opts.Ctx.Err())
-			opts.cancel()
 			return
+
 		case <-waitChan:
 			count--
 			if count == 0 {
@@ -107,7 +103,6 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 					fmt.Printf("Errors encountered %s\n", errGroup)
 				}
 				opts.cancel()
-				// return
 			}
 		}
 	}
