@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-type Function func()
-type FunctionErr func() (err error)
+type Function func(args any)
+type FunctionErr func(args any) (err error)
 
 type Options struct {
 	Timeout time.Duration
@@ -26,7 +26,7 @@ var opts = Options{
 
 // RunWait executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
-func RunWait(functions []Function, opts *Options) {
+func RunWait(functions []Function, args any, opts *Options) {
 	length := len(functions)
 	count := length
 	waitChan := make(chan struct{}, length)
@@ -40,7 +40,7 @@ func RunWait(functions []Function, opts *Options) {
 
 	for _, fu := range functions {
 		go func(f Function) {
-			f()
+			f(args)
 			waitChan <- struct{}{}
 		}(fu)
 	}
@@ -65,7 +65,7 @@ func RunWait(functions []Function, opts *Options) {
 
 // RunWaitErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
-func RunWaitErr(functions []FunctionErr, opts *Options) {
+func RunWaitErr(functions []FunctionErr, args any, opts *Options) {
 	length := len(functions)
 	count := length
 	waitChan := make(chan struct{}, length)
@@ -80,7 +80,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 
 	for _, fu := range functions {
 		go func(f FunctionErr) {
-			err := f()
+			err := f(args)
 			if err != nil {
 				errGroup = errors.Join(errGroup, err)
 			}
