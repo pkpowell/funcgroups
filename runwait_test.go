@@ -38,7 +38,7 @@ func TestRunWait(t *testing.T) {
 		RunWait([]Function{one, two, three, four}, &Options{
 			Timeout: 3 * time.Second,
 			Ctx:     context.Background(),
-			Debug:   true,
+			Debug:   BoolPointer(true),
 		})
 		duration := time.Since(start)
 		if duration > 3*time.Second+100*time.Millisecond {
@@ -57,7 +57,7 @@ func TestRunWait(t *testing.T) {
 		RunWait([]Function{one, two, three, four}, &Options{
 			Timeout: 10 * time.Second,
 			Ctx:     ctx,
-			Debug:   true,
+			Debug:   BoolPointer(true),
 		})
 		duration := time.Since(start)
 		if duration > 2*time.Second+100*time.Millisecond {
@@ -69,7 +69,7 @@ func TestRunWait(t *testing.T) {
 		RunWait([]Function{}, &Options{
 			Timeout: 1 * time.Second,
 			Ctx:     context.Background(),
-			Debug:   true,
+			Debug:   BoolPointer(true),
 		})
 		// This test passes if it doesn't panic
 	})
@@ -85,6 +85,6 @@ func RunWait_test(t *testing.T) {
 	RunWait([]Function{one, two, three, four}, &Options{
 		Timeout: 2 * time.Second,
 		Ctx:     context.Background(),
-		Debug:   true,
+		Debug:   BoolPointer(true),
 	})
 }

@@ -14,34 +14,54 @@ type Options struct {
 	Timeout time.Duration
 	Ctx     context.Context
 	cancel  context.CancelFunc
-	Debug   bool
+	Debug   *bool
 }
 
 var timeout = 5 * time.Second
+var ctx, cancel = context.WithTimeout(context.Background(), timeout)
 
 // Defaults
 var DefaultOptions = Options{
 	Timeout: timeout,
-	Ctx:     context.Background(),
-	Debug:   false,
+	Ctx:     ctx,
+	cancel:  cancel,
+	Debug:   BoolPointer(false),
 }
 
-// RunWait executes the provided functions concurrently and waits for them all to complete.
-// The functions are executed in separate goroutines. No errors are collected.
-func RunWait(functions []Function, opts *Options) {
+func BoolPointer(b bool) *bool {
+	return &b
+}
+
+func (opts *Options) check() {
 	if opts == nil {
 		opts = &DefaultOptions
+		return
 	}
-	length := len(functions)
-	count := length
-	waitChan := make(chan struct{}, length)
 
+	if opts.Debug == nil {
+		opts.Debug = BoolPointer(false)
+	}
+
+	if opts.Timeout == 0 {
+		opts.Timeout = timeout
+	}
 	if opts.Ctx == nil {
 		opts.Ctx, opts.cancel = context.WithTimeout(context.Background(), opts.Timeout)
 	} else {
 		opts.Ctx, opts.cancel = context.WithTimeout(opts.Ctx, opts.Timeout)
 	}
-	if opts.Debug {
+}
+
+// RunWait executes the provided functions concurrently and waits for them all to complete.
+// The functions are executed in separate goroutines. No errors are collected.
+func RunWait(functions []Function, opts *Options) {
+	opts.check()
+
+	length := len(functions)
+	count := length
+	waitChan := make(chan struct{}, length)
+
+	if *opts.Debug {
 		fmt.Printf("Starting %d jobs. Timeout = %s\n", length, opts.Timeout.String())
 	}
 
@@ -60,7 +80,7 @@ func RunWait(functions []Function, opts *Options) {
 		case <-waitChan:
 			count--
 			if count == 0 {
-				if opts.Debug {
+				if *opts.Debug {
 					fmt.Printf("All %d jobs done\n", length)
 				}
 				if opts.Ctx.Err() != nil {
@@ -78,7 +98,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 	length := len(functions)
 	count := length
 	waitChan := make(chan struct{}, length)
-	if opts.Debug {
+	if *opts.Debug {
 		fmt.Printf("Starting %d jobs and collecting errs. Timeout = %s\n", length, opts.Timeout.String())
 	}
 	if opts.Ctx == nil {
@@ -106,7 +126,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 		case <-waitChan:
 			count--
 			if count == 0 {
-				if opts.Debug {
+				if *opts.Debug {
 					fmt.Printf("All %d jobs done\n", length)
 				}
 				if errGroup != nil {
