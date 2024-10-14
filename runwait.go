@@ -21,41 +21,44 @@ var timeout = 5 * time.Second
 var ctx, cancel = context.WithTimeout(context.Background(), timeout)
 
 // Defaults
-var DefaultOptions = Options{
-	Timeout: timeout,
-	Ctx:     ctx,
-	cancel:  cancel,
-	Debug:   BoolPointer(false),
+func DefaultOptions() *Options {
+	return &Options{
+		Timeout: timeout,
+		Ctx:     ctx,
+		cancel:  cancel,
+		Debug:   BoolPointer(false),
+	}
 }
 
 func BoolPointer(b bool) *bool {
 	return &b
 }
 
-func (opts *Options) check() {
-	if opts == nil {
-		opts = &DefaultOptions
-		return
+func check(o *Options) *Options {
+	if o == nil {
+		fmt.Println("Using default options")
+		return DefaultOptions()
 	}
 
-	if opts.Debug == nil {
-		opts.Debug = BoolPointer(false)
+	if o.Debug == nil {
+		o.Debug = BoolPointer(false)
 	}
 
-	if opts.Timeout == 0 {
-		opts.Timeout = timeout
+	if o.Timeout == 0 {
+		o.Timeout = timeout
 	}
-	if opts.Ctx == nil {
-		opts.Ctx, opts.cancel = context.WithTimeout(context.Background(), opts.Timeout)
+	if o.Ctx == nil {
+		o.Ctx, o.cancel = context.WithTimeout(context.Background(), o.Timeout)
 	} else {
-		opts.Ctx, opts.cancel = context.WithTimeout(opts.Ctx, opts.Timeout)
+		o.Ctx, o.cancel = context.WithTimeout(o.Ctx, o.Timeout)
 	}
+	return o
 }
 
 // RunWait executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
 func RunWait(functions []Function, opts *Options) {
-	opts.check()
+	opts = check(opts)
 	fmt.Printf("opts %v\n", opts)
 
 	length := len(functions)
@@ -96,7 +99,7 @@ func RunWait(functions []Function, opts *Options) {
 // RunWaitErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
 func RunWaitErr(functions []FunctionErr, opts *Options) {
-	opts.check()
+	opts = check(opts)
 	length := len(functions)
 	count := length
 	waitChan := make(chan struct{}, length)
