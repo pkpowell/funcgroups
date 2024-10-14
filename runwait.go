@@ -14,6 +14,7 @@ type Options struct {
 	Timeout time.Duration
 	Ctx     context.Context
 	cancel  context.CancelFunc
+	Debug   bool
 }
 
 var timeout = 5 * time.Second
@@ -22,6 +23,7 @@ var timeout = 5 * time.Second
 var opts = Options{
 	Timeout: timeout,
 	Ctx:     context.Background(),
+	Debug:   false,
 }
 
 // RunWait executes the provided functions concurrently and waits for them all to complete.
@@ -36,7 +38,9 @@ func RunWait(functions []Function, opts *Options) {
 	} else {
 		opts.Ctx, opts.cancel = context.WithTimeout(opts.Ctx, opts.Timeout)
 	}
-	fmt.Printf("Starting %d jobs. Timeout = %s\n", length, opts.Timeout.String())
+	if opts.Debug {
+		fmt.Printf("Starting %d jobs. Timeout = %s\n", length, opts.Timeout.String())
+	}
 
 	for _, fu := range functions {
 		go func(f Function) {
@@ -53,7 +57,9 @@ func RunWait(functions []Function, opts *Options) {
 		case <-waitChan:
 			count--
 			if count == 0 {
-				fmt.Printf("All %d jobs done\n", length)
+				if opts.Debug {
+					fmt.Printf("All %d jobs done\n", length)
+				}
 				if opts.Ctx.Err() != nil {
 					fmt.Printf("Context error %s\n", opts.Ctx.Err())
 				}
@@ -69,8 +75,9 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 	length := len(functions)
 	count := length
 	waitChan := make(chan struct{}, length)
-
-	fmt.Printf("Starting %d jobs and collecting errs. Timeout = %s\n", length, opts.Timeout.String())
+	if opts.Debug {
+		fmt.Printf("Starting %d jobs and collecting errs. Timeout = %s\n", length, opts.Timeout.String())
+	}
 	if opts.Ctx == nil {
 		opts.Ctx, opts.cancel = context.WithTimeout(context.Background(), opts.Timeout)
 	} else {
@@ -96,7 +103,9 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 		case <-waitChan:
 			count--
 			if count == 0 {
-				fmt.Printf("All %d jobs done\n", length)
+				if opts.Debug {
+					fmt.Printf("All %d jobs done\n", length)
+				}
 				if errGroup != nil {
 					fmt.Printf("Errors encountered %s\n", errGroup)
 				}
