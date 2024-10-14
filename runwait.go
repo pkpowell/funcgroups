@@ -20,7 +20,7 @@ type Options struct {
 var timeout = 5 * time.Second
 
 // Defaults
-var opts = Options{
+var DefaultOptions = Options{
 	Timeout: timeout,
 	Ctx:     context.Background(),
 	Debug:   false,
@@ -29,6 +29,9 @@ var opts = Options{
 // RunWait executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
 func RunWait(functions []Function, opts *Options) {
+	if opts == nil {
+		opts = &DefaultOptions
+	}
 	length := len(functions)
 	count := length
 	waitChan := make(chan struct{}, length)
