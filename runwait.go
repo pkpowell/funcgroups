@@ -56,6 +56,7 @@ func (opts *Options) check() {
 // The functions are executed in separate goroutines. No errors are collected.
 func RunWait(functions []Function, opts *Options) {
 	opts.check()
+	fmt.Printf("opts %v\n", opts)
 
 	length := len(functions)
 	count := length
@@ -95,17 +96,11 @@ func RunWait(functions []Function, opts *Options) {
 // RunWaitErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
 func RunWaitErr(functions []FunctionErr, opts *Options) {
+	opts.check()
 	length := len(functions)
 	count := length
 	waitChan := make(chan struct{}, length)
-	if *opts.Debug {
-		fmt.Printf("Starting %d jobs and collecting errs. Timeout = %s\n", length, opts.Timeout.String())
-	}
-	if opts.Ctx == nil {
-		opts.Ctx, opts.cancel = context.WithTimeout(context.Background(), opts.Timeout)
-	} else {
-		opts.Ctx, opts.cancel = context.WithTimeout(opts.Ctx, opts.Timeout)
-	}
+
 	var errGroup error
 
 	for _, fu := range functions {
