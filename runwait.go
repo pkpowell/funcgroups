@@ -65,7 +65,7 @@ func RunWait(functions []Function, opts *Options) {
 	waitChan := make(chan struct{}, length)
 
 	if *opts.Debug {
-		fmt.Printf("Starting %d jobs. Timeout = %s\n", length, opts.Timeout.String())
+		fmt.Printf("Starting %d jobs.\n", length)
 	}
 
 	for _, fu := range functions {
@@ -103,6 +103,10 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 	length := len(functions)
 	count := length
 	waitChan := make(chan struct{}, length)
+
+	if *opts.Debug {
+		fmt.Printf("Starting %d jobs.\n", length)
+	}
 
 	var errGroup error
 
