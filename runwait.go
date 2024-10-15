@@ -59,7 +59,6 @@ func check(o *Options) *Options {
 // The functions are executed in separate goroutines. No errors are collected.
 func RunWait(functions []Function, opts *Options) {
 	opts = check(opts)
-	fmt.Printf("opts %v\n", opts)
 
 	length := len(functions)
 	count := length
@@ -72,6 +71,7 @@ func RunWait(functions []Function, opts *Options) {
 	for _, fu := range functions {
 		go func(f Function) {
 			f()
+
 			waitChan <- struct{}{}
 		}(fu)
 	}

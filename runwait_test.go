@@ -27,6 +27,13 @@ func four() {
 	time.Sleep(time.Second * 4)
 	fmt.Println("func four done")
 }
+func fifteen() {
+	fmt.Println("func four")
+	time.Sleep(time.Second * 4)
+	fmt.Println("func four done")
+}
+
+var allFuncs = []Function{one, two, three, four, fifteen}
 
 func TestRunWait(t *testing.T) {
 	t.Run("Basic functionality", func(t *testing.T) {
@@ -35,7 +42,7 @@ func TestRunWait(t *testing.T) {
 
 	t.Run("Timeout scenario", func(t *testing.T) {
 		start := time.Now()
-		RunWait([]Function{one, two, three, four}, &Options{
+		RunWait(allFuncs, &Options{
 			Timeout: 3 * time.Second,
 			Ctx:     context.Background(),
 			Debug:   BoolPointer(true),
@@ -54,7 +61,7 @@ func TestRunWait(t *testing.T) {
 		}()
 
 		start := time.Now()
-		RunWait([]Function{one, two, three, four}, &Options{
+		RunWait(allFuncs, &Options{
 			Timeout: 10 * time.Second,
 			Ctx:     ctx,
 			Debug:   BoolPointer(true),
@@ -82,7 +89,7 @@ func TestRunWait(t *testing.T) {
 
 func RunWait_test(t *testing.T) {
 	t.Log("RunWait_test")
-	RunWait([]Function{one, two, three, four}, &Options{
+	RunWait(allFuncs, &Options{
 		Timeout: 2 * time.Second,
 		Ctx:     context.Background(),
 		Debug:   BoolPointer(true),
