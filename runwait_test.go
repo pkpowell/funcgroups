@@ -12,24 +12,28 @@ func one() {
 	time.Sleep(time.Second * 1)
 	fmt.Println("func one done")
 }
+
 func two() {
 	fmt.Println("func two")
 	time.Sleep(time.Second * 2)
 	fmt.Println("func two done")
 }
+
 func three() {
 	fmt.Println("func three")
 	time.Sleep(time.Second * 3)
 	fmt.Println("func three done")
 }
+
 func four() {
 	fmt.Println("func four")
 	time.Sleep(time.Second * 4)
 	fmt.Println("func four done")
 }
+
 func fifteen() {
-	fmt.Println("func four")
-	time.Sleep(time.Second * 4)
+	fmt.Println("func fifteen")
+	time.Sleep(time.Second * 15)
 	fmt.Println("func four done")
 }
 
