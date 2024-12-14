@@ -3,7 +3,7 @@ package funcgroups
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 	"time"
 )
 
@@ -36,7 +36,7 @@ func BoolPointer(b bool) *bool {
 
 func check(o *Options) *Options {
 	if o == nil {
-		fmt.Println("Using default options")
+		log.Println("Using default options")
 		return DefaultOptions()
 	}
 
@@ -65,7 +65,7 @@ func RunWait(functions []Function, opts *Options) {
 	waitChan := make(chan struct{}, length)
 
 	if *opts.Debug {
-		fmt.Printf("Starting %d jobs.\n", length)
+		log.Printf("Starting %d jobs.\n", length)
 	}
 
 	for _, fu := range functions {
@@ -85,10 +85,10 @@ func RunWait(functions []Function, opts *Options) {
 			count--
 			if count == 0 {
 				if *opts.Debug {
-					fmt.Printf("All %d jobs done\n", length)
+					log.Printf("All %d jobs done\n", length)
 				}
 				if opts.Ctx.Err() != nil {
-					fmt.Printf("Context error %s\n", opts.Ctx.Err())
+					log.Printf("Context error %s\n", opts.Ctx.Err())
 				}
 				opts.cancel()
 			}
@@ -105,7 +105,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 	waitChan := make(chan struct{}, length)
 
 	if *opts.Debug {
-		fmt.Printf("Starting %d jobs.\n", length)
+		log.Printf("Starting %d jobs.\n", length)
 	}
 
 	var errGroup error
@@ -129,10 +129,10 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 			count--
 			if count == 0 {
 				if *opts.Debug {
-					fmt.Printf("All %d jobs done\n", length)
+					log.Printf("All %d jobs done\n", length)
 				}
 				if errGroup != nil {
-					fmt.Printf("Errors encountered %s\n", errGroup)
+					log.Printf("Errors encountered %s\n", errGroup)
 				}
 				opts.cancel()
 			}
