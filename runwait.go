@@ -99,7 +99,7 @@ func RunWait(functions []Function, opts *Options) {
 
 // RunWaitErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
-func RunWaitErr(functions []FunctionErr, opts *Options) {
+func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 	var err error
 	opts = check(opts)
 	length := len(functions)
@@ -110,7 +110,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 		log.Println("Starting " + strconv.Itoa(length) + " jobs.")
 	}
 
-	var errGroup error
+	// var errGroup error
 
 	for _, fu := range functions {
 		go func(f FunctionErr) {
@@ -133,9 +133,9 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 				if *opts.Debug {
 					log.Println("All " + strconv.Itoa(length) + " jobs done")
 				}
-				if errGroup != nil {
-					log.Println("Errors encountered ", errGroup.Error())
-				}
+				// if errGroup != nil {
+				// 	log.Println("Errors encountered ", errGroup.Error())
+				// }
 				opts.cancel()
 			}
 		}
