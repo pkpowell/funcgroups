@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -65,7 +66,7 @@ func RunWait(functions []Function, opts *Options) {
 	waitChan := make(chan struct{}, length)
 
 	if *opts.Debug {
-		log.Printf("Starting %d jobs.\n", length)
+		log.Println("Starting " + strconv.Itoa(length) + " jobs")
 	}
 
 	for _, fu := range functions {
@@ -85,10 +86,10 @@ func RunWait(functions []Function, opts *Options) {
 			count--
 			if count == 0 {
 				if *opts.Debug {
-					log.Printf("All %d jobs done\n", length)
+					log.Println("All " + strconv.Itoa(length) + " jobs done")
 				}
 				if opts.Ctx.Err() != nil {
-					log.Printf("Context error %s\n", opts.Ctx.Err())
+					log.Println("Context error ", opts.Ctx.Err().Error())
 				}
 				opts.cancel()
 			}
@@ -106,7 +107,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 	waitChan := make(chan struct{}, length)
 
 	if *opts.Debug {
-		log.Printf("Starting %d jobs.\n", length)
+		log.Println("Starting " + strconv.Itoa(length) + " jobs.")
 	}
 
 	var errGroup error
@@ -130,10 +131,10 @@ func RunWaitErr(functions []FunctionErr, opts *Options) {
 			count--
 			if count == 0 {
 				if *opts.Debug {
-					log.Printf("All %d jobs done\n", length)
+					log.Println("All " + strconv.Itoa(length) + " jobs done")
 				}
 				if errGroup != nil {
-					log.Printf("Errors encountered %s\n", errGroup)
+					log.Println("Errors encountered ", errGroup.Error())
 				}
 				opts.cancel()
 			}
