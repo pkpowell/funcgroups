@@ -49,7 +49,7 @@ func TestRunWait(t *testing.T) {
 		RunWait(allFuncs, &Options{
 			Timeout: 3 * time.Second,
 			Ctx:     context.Background(),
-			Debug:   BoolPointer(true),
+			Debug:   true,
 			Timer:   true,
 		})
 		duration := time.Since(start)
@@ -69,7 +69,7 @@ func TestRunWait(t *testing.T) {
 		RunWait(allFuncs, &Options{
 			Timeout: 10 * time.Second,
 			Ctx:     ctx,
-			Debug:   BoolPointer(true),
+			Debug:   true,
 			Timer:   true,
 		})
 		duration := time.Since(start)
@@ -82,7 +82,7 @@ func TestRunWait(t *testing.T) {
 		RunWait([]Function{}, &Options{
 			Timeout: 1 * time.Second,
 			Ctx:     context.Background(),
-			Debug:   BoolPointer(true),
+			Debug:   true,
 		})
 		// This test passes if it doesn't panic
 	})
@@ -98,6 +98,6 @@ func RunWait_test(t *testing.T) {
 	RunWait(allFuncs, &Options{
 		Timeout: 2 * time.Second,
 		Ctx:     context.Background(),
-		Debug:   BoolPointer(true),
+		Debug:   true,
 	})
 }

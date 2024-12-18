@@ -15,7 +15,7 @@ type Options struct {
 	Timeout time.Duration
 	Ctx     context.Context
 	cancel  context.CancelFunc
-	Debug   *bool
+	Debug   bool
 	Timer   bool
 }
 
@@ -28,14 +28,14 @@ func DefaultOptions() *Options {
 		Timeout: timeout,
 		Ctx:     ctx,
 		cancel:  cancel,
-		Debug:   BoolPointer(false),
+		Debug:   false,
 		Timer:   false,
 	}
 }
 
-func BoolPointer(b bool) *bool {
-	return &b
-}
+// func BoolPointer(b bool) *bool {
+// 	return &b
+// }
 
 func check(o *Options) *Options {
 	if o == nil {
@@ -43,9 +43,9 @@ func check(o *Options) *Options {
 		return DefaultOptions()
 	}
 
-	if o.Debug == nil {
-		o.Debug = BoolPointer(false)
-	}
+	// if o.Debug == nil {
+	// 	o.Debug = false
+	// }
 
 	if o.Timeout == 0 {
 		o.Timeout = timeout
@@ -69,7 +69,7 @@ func RunWait(functions []Function, opts *Options) {
 	count := length
 	waitChan := make(chan struct{}, length)
 
-	if *opts.Debug {
+	if opts.Debug {
 		log.Println("Starting " + strconv.Itoa(length) + " jobs")
 	}
 
@@ -93,7 +93,7 @@ func RunWait(functions []Function, opts *Options) {
 		case <-waitChan:
 			count--
 			if count == 0 {
-				if *opts.Debug {
+				if opts.Debug {
 					log.Println("All " + strconv.Itoa(length) + " jobs done")
 				}
 				if opts.Ctx.Err() != nil {
@@ -114,7 +114,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 	count := length
 	waitChan := make(chan struct{}, length)
 
-	if *opts.Debug {
+	if opts.Debug {
 		log.Println("Starting " + strconv.Itoa(length) + " jobs.")
 	}
 
@@ -142,7 +142,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 		case <-waitChan:
 			count--
 			if count == 0 {
-				if *opts.Debug {
+				if opts.Debug {
 					log.Println("All " + strconv.Itoa(length) + " jobs done")
 				}
 
