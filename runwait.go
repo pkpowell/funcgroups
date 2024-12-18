@@ -16,6 +16,7 @@ type Options struct {
 	Ctx     context.Context
 	cancel  context.CancelFunc
 	Debug   *bool
+	Timer   bool
 }
 
 var timeout = 5 * time.Second
@@ -28,6 +29,7 @@ func DefaultOptions() *Options {
 		Ctx:     ctx,
 		cancel:  cancel,
 		Debug:   BoolPointer(false),
+		Timer:   false,
 	}
 }
 
@@ -48,11 +50,13 @@ func check(o *Options) *Options {
 	if o.Timeout == 0 {
 		o.Timeout = timeout
 	}
+
 	if o.Ctx == nil {
 		o.Ctx, o.cancel = context.WithTimeout(context.Background(), o.Timeout)
 	} else {
 		o.Ctx, o.cancel = context.WithTimeout(o.Ctx, o.Timeout)
 	}
+
 	return o
 }
 
@@ -71,7 +75,11 @@ func RunWait(functions []Function, opts *Options) {
 
 	for _, fu := range functions {
 		go func(f Function) {
-			timer(f)
+			if opts.Timer {
+				timer(f)
+			} else {
+				f()
+			}
 
 			waitChan <- struct{}{}
 		}(fu)
@@ -114,7 +122,11 @@ func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 
 	for _, fu := range functions {
 		go func(f FunctionErr) {
-			err = timerWithErr(f)
+			if opts.Timer {
+				err = timerWithErr(f)
+			} else {
+				err = f()
+			}
 			if err != nil {
 				errGroup = errors.Join(errGroup, err)
 			}
@@ -133,9 +145,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 				if *opts.Debug {
 					log.Println("All " + strconv.Itoa(length) + " jobs done")
 				}
-				// if errGroup != nil {
-				// 	log.Println("Errors encountered ", errGroup.Error())
-				// }
+
 				opts.cancel()
 			}
 		}
@@ -146,7 +156,9 @@ func timerWithErr(fn func() error) (err error) {
 	start := time.Now()
 	err = fn()
 	elapsed := time.Since(start)
-	log.Println("timer ", elapsed)
+
+	log.Println("duration ", elapsed)
+
 	return
 }
 
@@ -154,6 +166,6 @@ func timer(fn func()) {
 	start := time.Now()
 	fn()
 	elapsed := time.Since(start)
-	log.Println("timer ", elapsed)
 
+	log.Println("duration ", elapsed)
 }

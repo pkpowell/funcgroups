@@ -50,6 +50,7 @@ func TestRunWait(t *testing.T) {
 			Timeout: 3 * time.Second,
 			Ctx:     context.Background(),
 			Debug:   BoolPointer(true),
+			Timer:   true,
 		})
 		duration := time.Since(start)
 		if duration > 3*time.Second+100*time.Millisecond {
@@ -69,6 +70,7 @@ func TestRunWait(t *testing.T) {
 			Timeout: 10 * time.Second,
 			Ctx:     ctx,
 			Debug:   BoolPointer(true),
+			Timer:   true,
 		})
 		duration := time.Since(start)
 		if duration > 2*time.Second+100*time.Millisecond {
