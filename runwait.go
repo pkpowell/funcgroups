@@ -71,7 +71,7 @@ func RunWait(functions []Function, opts *Options) {
 
 	for _, fu := range functions {
 		go func(f Function) {
-			f()
+			timer(f)
 
 			waitChan <- struct{}{}
 		}(fu)
@@ -114,7 +114,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 
 	for _, fu := range functions {
 		go func(f FunctionErr) {
-			err = f()
+			err = timerWithErr(f)
 			if err != nil {
 				errGroup = errors.Join(errGroup, err)
 			}
@@ -140,4 +140,20 @@ func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 			}
 		}
 	}
+}
+
+func timerWithErr(fn func() error) (err error) {
+	start := time.Now()
+	err = fn()
+	elapsed := time.Since(start)
+	log.Println("timer ", elapsed)
+	return
+}
+
+func timer(fn func()) {
+	start := time.Now()
+	fn()
+	elapsed := time.Since(start)
+	log.Println("timer ", elapsed)
+
 }
