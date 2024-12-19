@@ -111,9 +111,9 @@ func (g *noErr) RunWait() {
 	count := length
 	waitChan := make(chan struct{}, length)
 
-	if g.Options.Debug {
-		log.Println("Starting " + strconv.Itoa(length) + " jobs")
-	}
+	// if g.Options.Debug {
+	// 	log.Println("Starting " + strconv.Itoa(length) + " jobs")
+	// }
 
 	for _, fg := range g.functions {
 		go func() {
@@ -155,11 +155,9 @@ func (g *withErr) RunWaitErr() (errGroup error) {
 	count := length
 	waitChan := make(chan struct{}, length)
 
-	if g.Options.Debug {
-		log.Println("Starting " + strconv.Itoa(length) + " jobs.")
-	}
-
-	// var errGroup error
+	// if g.Options.Debug {
+	// 	log.Println("Starting " + strconv.Itoa(length) + " jobs.")
+	// }
 
 	for _, fu := range g.functions {
 		go func() {
