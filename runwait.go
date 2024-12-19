@@ -106,14 +106,9 @@ func check(o *Options) *Options {
 // RunWait executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
 func (g *noErr) RunWait() {
-
 	length := len(g.functions)
 	count := length
 	waitChan := make(chan struct{}, length)
-
-	// if g.Options.Debug {
-	// 	log.Println("Starting " + strconv.Itoa(length) + " jobs")
-	// }
 
 	for _, fg := range g.functions {
 		go func() {
@@ -154,10 +149,6 @@ func (g *withErr) RunWaitErr() (errGroup error) {
 	length := len(g.functions)
 	count := length
 	waitChan := make(chan struct{}, length)
-
-	// if g.Options.Debug {
-	// 	log.Println("Starting " + strconv.Itoa(length) + " jobs.")
-	// }
 
 	for _, fu := range g.functions {
 		go func() {
