@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"log"
+	"reflect"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -160,7 +162,8 @@ func timerWithErr(fn func() error) (err error) {
 	err = fn()
 	// pcs = loc.CallersFill(2, pcsbuf[:])
 	elapsed := time.Since(start)
-	log.Printf("function : %p\n", fn)
+
+	log.Print("line", runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name())
 	log.Println("duration", elapsed)
 
 	return
@@ -171,6 +174,6 @@ func timer(fn func()) {
 	fn()
 	// pcs = loc.CallersFill(2, pcsbuf[:])
 	elapsed := time.Since(start)
-	log.Printf("function : %p\n", fn)
+	log.Print("line", runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name())
 	log.Println("duration", elapsed)
 }
