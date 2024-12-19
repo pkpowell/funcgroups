@@ -162,9 +162,7 @@ func timerWithErr(fn func() error) (err error) {
 	err = fn()
 	// pcs = loc.CallersFill(2, pcsbuf[:])
 	elapsed := time.Since(start)
-
-	log.Print("line", runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name())
-	log.Println("duration", elapsed)
+	log.Println(runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name(), elapsed)
 
 	return
 }
@@ -174,6 +172,5 @@ func timer(fn func()) {
 	fn()
 	// pcs = loc.CallersFill(2, pcsbuf[:])
 	elapsed := time.Since(start)
-	log.Print("line", runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name())
-	log.Println("duration", elapsed)
+	log.Println(runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name(), elapsed)
 }
