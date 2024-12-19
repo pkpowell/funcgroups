@@ -18,7 +18,6 @@ type Options struct {
 	Ctx     context.Context
 	cancel  context.CancelFunc
 	Debug   bool
-	Timer   bool
 }
 
 var timeout = 5 * time.Second
@@ -34,7 +33,6 @@ func DefaultOptions() *Options {
 		Ctx:     ctx,
 		cancel:  cancel,
 		Debug:   false,
-		Timer:   false,
 	}
 }
 
@@ -80,7 +78,7 @@ func RunWait(functions []Function, opts *Options) {
 
 	for _, fu := range functions {
 		go func(f Function) {
-			if opts.Timer {
+			if opts.Debug {
 				timer(f)
 			} else {
 				f()
@@ -127,7 +125,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 
 	for _, fu := range functions {
 		go func(f FunctionErr) {
-			if opts.Timer {
+			if opts.Debug {
 				err = timerWithErr(f)
 			} else {
 				err = f()
