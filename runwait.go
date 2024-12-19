@@ -133,6 +133,9 @@ func (g *noErr) RunWait() {
 	for {
 		select {
 		case <-g.Options.Ctx.Done():
+			if g.Options.Ctx.Err() != nil {
+				log.Println("Context error ", g.Options.Ctx.Err().Error())
+			}
 			return
 
 		case <-g.wait:
@@ -140,9 +143,6 @@ func (g *noErr) RunWait() {
 			if count == 0 {
 				if g.Options.Debug {
 					log.Println("All " + strconv.Itoa(g.length) + " jobs done")
-				}
-				if g.Options.Ctx.Err() != nil {
-					log.Println("Context error ", g.Options.Ctx.Err().Error())
 				}
 				g.Options.cancel()
 			}
@@ -173,6 +173,9 @@ func (g *withErr) RunWaitErr() (errGroup error) {
 	for {
 		select {
 		case <-g.Options.Ctx.Done():
+			if g.Options.Ctx.Err() != nil {
+				log.Println("Context error ", g.Options.Ctx.Err().Error())
+			}
 			return
 
 		case <-g.wait:
@@ -181,7 +184,6 @@ func (g *withErr) RunWaitErr() (errGroup error) {
 				if g.Options.Debug {
 					log.Println("All " + strconv.Itoa(g.length) + " jobs done")
 				}
-
 				g.Options.cancel()
 			}
 		}
