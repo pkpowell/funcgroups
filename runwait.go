@@ -6,8 +6,6 @@ import (
 	"log"
 	"strconv"
 	"time"
-
-	"tlog.app/go/loc"
 )
 
 type Function func()
@@ -23,8 +21,9 @@ type Options struct {
 
 var timeout = 5 * time.Second
 var ctx, cancel = context.WithTimeout(context.Background(), timeout)
-var pcsbuf [3]loc.PC
-var pcs loc.PCs
+
+// var pcsbuf [3]loc.PC
+// var pcs loc.PCs
 
 // Defaults
 func DefaultOptions() *Options {
@@ -159,11 +158,9 @@ func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 func timerWithErr(fn func() error) (err error) {
 	start := time.Now()
 	err = fn()
-	pcs = loc.CallersFill(2, pcsbuf[:])
+	// pcs = loc.CallersFill(2, pcsbuf[:])
 	elapsed := time.Since(start)
-	for _, pc := range pcs {
-		log.Println("line", pc.String())
-	}
+	log.Printf("function : %p\n", fn)
 	log.Println("duration", elapsed)
 
 	return
@@ -172,10 +169,8 @@ func timerWithErr(fn func() error) (err error) {
 func timer(fn func()) {
 	start := time.Now()
 	fn()
-	pcs = loc.CallersFill(2, pcsbuf[:])
+	// pcs = loc.CallersFill(2, pcsbuf[:])
 	elapsed := time.Since(start)
-	for _, pc := range pcs {
-		log.Println("line", pc.String())
-	}
+	log.Printf("function : %p\n", fn)
 	log.Println("duration", elapsed)
 }
