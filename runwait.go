@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"log"
-	"reflect"
 	"runtime"
 	"strconv"
 	"time"
+
+	"github.com/goccy/go-reflect"
 )
 
-type Function func()
-type FunctionErr func() (err error)
+type function func()
+type functionErr func() (err error)
 
 type Options struct {
 	Timeout time.Duration
@@ -20,11 +21,58 @@ type Options struct {
 	Debug   bool
 }
 
+type groupNoErr struct {
+	f     function
+	fName string
+}
+
+type noErr struct {
+	functions []groupNoErr
+	*Options
+}
+
+func New(fns []function, o *Options) *noErr {
+	o = check(o)
+	var noErr = &noErr{
+		Options:   o,
+		functions: make([]groupNoErr, len(fns)),
+	}
+	for i, f := range fns {
+		noErr.functions[i] = groupNoErr{
+			fName: runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name(),
+			f:     f,
+		}
+	}
+	return noErr
+}
+
+func NewWithErr(fns []functionErr, o *Options) *withErr {
+	o = check(o)
+	var withErr = &withErr{
+		Options:   o,
+		functions: make([]groupWithErr, len(fns)),
+	}
+	for i, f := range fns {
+		withErr.functions[i] = groupWithErr{
+			fName: runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name(),
+			f:     f,
+		}
+	}
+	return withErr
+}
+
+type groupWithErr struct {
+	f     functionErr
+	fName string
+}
+
+type withErr struct {
+	functions []groupWithErr
+	*Options
+}
+
 var timeout = 5 * time.Second
 var ctx, cancel = context.WithTimeout(context.Background(), timeout)
-
-// var pcsbuf [3]loc.PC
-// var pcs loc.PCs
 
 // Defaults
 func DefaultOptions() *Options {
@@ -36,19 +84,11 @@ func DefaultOptions() *Options {
 	}
 }
 
-// func BoolPointer(b bool) *bool {
-// 	return &b
-// }
-
 func check(o *Options) *Options {
 	if o == nil {
 		log.Println("Using default options")
 		return DefaultOptions()
 	}
-
-	// if o.Debug == nil {
-	// 	o.Debug = false
-	// }
 
 	if o.Timeout == 0 {
 		o.Timeout = timeout
@@ -65,44 +105,43 @@ func check(o *Options) *Options {
 
 // RunWait executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
-func RunWait(functions []Function, opts *Options) {
-	opts = check(opts)
+func (g *noErr) RunWait() {
 
-	length := len(functions)
+	length := len(g.functions)
 	count := length
 	waitChan := make(chan struct{}, length)
 
-	if opts.Debug {
+	if g.Options.Debug {
 		log.Println("Starting " + strconv.Itoa(length) + " jobs")
 	}
 
-	for _, fu := range functions {
-		go func(f Function) {
-			if opts.Debug {
-				timer(f)
+	for _, fg := range g.functions {
+		go func() {
+			if g.Options.Debug {
+				timer(fg)
 			} else {
-				f()
+				fg.f()
 			}
 
 			waitChan <- struct{}{}
-		}(fu)
+		}()
 	}
 
 	for {
 		select {
-		case <-opts.Ctx.Done():
+		case <-g.Options.Ctx.Done():
 			return
 
 		case <-waitChan:
 			count--
 			if count == 0 {
-				if opts.Debug {
+				if g.Options.Debug {
 					log.Println("All " + strconv.Itoa(length) + " jobs done")
 				}
-				if opts.Ctx.Err() != nil {
-					log.Println("Context error ", opts.Ctx.Err().Error())
+				if g.Options.Ctx.Err() != nil {
+					log.Println("Context error ", g.Options.Ctx.Err().Error())
 				}
-				opts.cancel()
+				g.Options.cancel()
 			}
 		}
 	}
@@ -110,65 +149,62 @@ func RunWait(functions []Function, opts *Options) {
 
 // RunWaitErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
-func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
+func (g *withErr) RunWaitErr() (errGroup error) {
 	var err error
-	opts = check(opts)
-	length := len(functions)
+	length := len(g.functions)
 	count := length
 	waitChan := make(chan struct{}, length)
 
-	if opts.Debug {
+	if g.Options.Debug {
 		log.Println("Starting " + strconv.Itoa(length) + " jobs.")
 	}
 
 	// var errGroup error
 
-	for _, fu := range functions {
-		go func(f FunctionErr) {
-			if opts.Debug {
-				err = timerWithErr(f)
+	for _, fu := range g.functions {
+		go func() {
+			if g.Options.Debug {
+				err = timerWithErr(fu)
 			} else {
-				err = f()
+				err = fu.f()
 			}
 			if err != nil {
 				errGroup = errors.Join(errGroup, err)
 			}
 			waitChan <- struct{}{}
-		}(fu)
+		}()
 	}
 
 	for {
 		select {
-		case <-opts.Ctx.Done():
+		case <-g.Options.Ctx.Done():
 			return
 
 		case <-waitChan:
 			count--
 			if count == 0 {
-				if opts.Debug {
+				if g.Options.Debug {
 					log.Println("All " + strconv.Itoa(length) + " jobs done")
 				}
 
-				opts.cancel()
+				g.Options.cancel()
 			}
 		}
 	}
 }
 
-func timerWithErr(fn func() error) (err error) {
+func timerWithErr(g groupWithErr) (err error) {
 	start := time.Now()
-	err = fn()
-	// pcs = loc.CallersFill(2, pcsbuf[:])
+	err = g.f()
 	elapsed := time.Since(start)
-	log.Println(runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name(), elapsed)
+	log.Println(g.fName, elapsed)
 
 	return
 }
 
-func timer(fn func()) {
+func timer(g groupNoErr) {
 	start := time.Now()
-	fn()
-	// pcs = loc.CallersFill(2, pcsbuf[:])
+	g.f()
 	elapsed := time.Since(start)
-	log.Println(runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name(), elapsed)
+	log.Println(g.fName, elapsed)
 }

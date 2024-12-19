@@ -37,65 +37,69 @@ func fifteen() {
 	fmt.Println("func four done")
 }
 
-var allFuncs = []Function{one, two, three, four, fifteen}
+var allFuncs = []function{one, two, three, four, fifteen}
 
 func TestRunWait(t *testing.T) {
 	t.Run("Basic functionality", func(t *testing.T) {
 		RunWait_test(t)
 	})
 
+	fng := New(allFuncs, &Options{
+		Timeout: 3 * time.Second,
+		Ctx:     context.Background(),
+		Debug:   true,
+	})
 	t.Run("Timeout scenario", func(t *testing.T) {
 		start := time.Now()
-		RunWait(allFuncs, &Options{
-			Timeout: 3 * time.Second,
-			Ctx:     context.Background(),
-			Debug:   true,
-		})
+		fng.RunWait()
 		duration := time.Since(start)
 		if duration > 3*time.Second+100*time.Millisecond {
 			t.Errorf("RunWait didn't respect timeout. Took %v, expected around 3s", duration)
 		}
 	})
 
+	ctx, cancel := context.WithCancel(context.Background())
+	fng = New(allFuncs, &Options{
+		Timeout: 10 * time.Second,
+		Ctx:     ctx,
+		Debug:   true,
+	})
 	t.Run("Context cancellation", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
 		go func() {
 			time.Sleep(2 * time.Second)
 			cancel()
 		}()
 
 		start := time.Now()
-		RunWait(allFuncs, &Options{
-			Timeout: 10 * time.Second,
-			Ctx:     ctx,
-			Debug:   true,
-		})
+		fng.RunWait()
 		duration := time.Since(start)
 		if duration > 2*time.Second+100*time.Millisecond {
 			t.Errorf("RunWait didn't respect context cancellation. Took %v, expected around 2s", duration)
 		}
 	})
-
-	t.Run("Empty function list", func(t *testing.T) {
-		RunWait([]Function{}, &Options{
-			Timeout: 1 * time.Second,
-			Ctx:     context.Background(),
-			Debug:   true,
-		})
-		// This test passes if it doesn't panic
+	fng = New([]function{}, &Options{
+		Timeout: 1 * time.Second,
+		Ctx:     context.Background(),
+		Debug:   true,
 	})
 
+	t.Run("Empty function list", func(t *testing.T) {
+		fng.RunWait()
+	})
+
+	fng = New([]function{one, two}, nil)
 	t.Run("Nil options", func(t *testing.T) {
-		RunWait([]Function{one, two}, nil)
+		fng.RunWait()
 		// This test passes if it doesn't panic and uses default options
 	})
 }
 
 func RunWait_test(t *testing.T) {
-	t.Log("RunWait_test")
-	RunWait(allFuncs, &Options{
+	fng := New(allFuncs, &Options{
 		Timeout: 2 * time.Second,
 		Ctx:     context.Background(),
 		Debug:   true,
 	})
+	t.Log("RunWait_test")
+	fng.RunWait()
 }
