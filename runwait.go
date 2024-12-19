@@ -11,8 +11,8 @@ import (
 	"github.com/goccy/go-reflect"
 )
 
-type function func()
-type functionErr func() (err error)
+type Function func()
+type FunctionErr func() (err error)
 
 type Options struct {
 	Timeout time.Duration
@@ -22,7 +22,7 @@ type Options struct {
 }
 
 type groupNoErr struct {
-	f     function
+	f     Function
 	fName string
 }
 
@@ -31,7 +31,7 @@ type noErr struct {
 	*Options
 }
 
-func New(fns []function, o *Options) *noErr {
+func New(fns []Function, o *Options) *noErr {
 	o = check(o)
 	var noErr = &noErr{
 		Options:   o,
@@ -46,7 +46,7 @@ func New(fns []function, o *Options) *noErr {
 	return noErr
 }
 
-func NewWithErr(fns []functionErr, o *Options) *withErr {
+func NewWithErr(fns []FunctionErr, o *Options) *withErr {
 	o = check(o)
 	var withErr = &withErr{
 		Options:   o,
@@ -62,7 +62,7 @@ func NewWithErr(fns []functionErr, o *Options) *withErr {
 }
 
 type groupWithErr struct {
-	f     functionErr
+	f     FunctionErr
 	fName string
 }
 

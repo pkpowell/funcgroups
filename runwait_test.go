@@ -37,7 +37,7 @@ func fifteen() {
 	fmt.Println("func four done")
 }
 
-var allFuncs = []function{one, two, three, four, fifteen}
+var allFuncs = []Function{one, two, three, four, fifteen}
 
 func TestRunWait(t *testing.T) {
 	t.Run("Basic functionality", func(t *testing.T) {
@@ -77,7 +77,7 @@ func TestRunWait(t *testing.T) {
 			t.Errorf("RunWait didn't respect context cancellation. Took %v, expected around 2s", duration)
 		}
 	})
-	fng = New([]function{}, &Options{
+	fng = New([]Function{}, &Options{
 		Timeout: 1 * time.Second,
 		Ctx:     context.Background(),
 		Debug:   true,
@@ -87,7 +87,7 @@ func TestRunWait(t *testing.T) {
 		fng.RunWait()
 	})
 
-	fng = New([]function{one, two}, nil)
+	fng = New([]Function{one, two}, nil)
 	t.Run("Nil options", func(t *testing.T) {
 		fng.RunWait()
 		// This test passes if it doesn't panic and uses default options
