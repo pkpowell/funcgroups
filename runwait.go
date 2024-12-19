@@ -159,7 +159,7 @@ func RunWaitErr(functions []FunctionErr, opts *Options) (errGroup error) {
 func timerWithErr(fn func() error) (err error) {
 	start := time.Now()
 	err = fn()
-	pcs = loc.CallersFill(1, pcsbuf[:])
+	pcs = loc.CallersFill(2, pcsbuf[:])
 	elapsed := time.Since(start)
 	for _, pc := range pcs {
 		log.Println("line", pc.String())
@@ -172,7 +172,7 @@ func timerWithErr(fn func() error) (err error) {
 func timer(fn func()) {
 	start := time.Now()
 	fn()
-	pcs = loc.CallersFill(1, pcsbuf[:])
+	pcs = loc.CallersFill(2, pcsbuf[:])
 	elapsed := time.Since(start)
 	for _, pc := range pcs {
 		log.Println("line", pc.String())
