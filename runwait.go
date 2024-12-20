@@ -35,6 +35,7 @@ type noErr struct {
 
 func New(fns []Function, opts *Options) *noErr {
 	opts = check(opts)
+	log.Println("opts", opts)
 	var noErr = &noErr{
 		Options: opts,
 		fns:     make([]groupNoErr, len(fns)),
@@ -53,6 +54,7 @@ func New(fns []Function, opts *Options) *noErr {
 
 func NewWithErr(fns []FunctionErr, opts *Options) *withErr {
 	opts = check(opts)
+	log.Println("opts", opts)
 	var withErr = &withErr{
 		Options: opts,
 		fns:     make([]funcWithErr, len(fns)),
@@ -104,19 +106,24 @@ func check(opts *Options) *Options {
 		opts.Timeout = timeout
 	}
 
-	if opts.Ctx == nil {
-		opts.Ctx, opts.cancel = context.WithTimeout(context.Background(), opts.Timeout)
-	} else {
-		opts.Ctx, opts.cancel = context.WithTimeout(opts.Ctx, opts.Timeout)
-	}
+	// if opts.Ctx == nil {
+	// 	opts.Ctx, opts.cancel = context.WithTimeout(context.Background(), opts.Timeout)
+	// } else {
+	// 	opts.Ctx, opts.cancel = context.WithTimeout(opts.Ctx, opts.Timeout)
+	// }
 
 	return opts
 }
 
 // RunWait executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
-func (g *noErr) RunWait() {
+func (g *noErr) RunWait(ctx context.Context) {
 	count := g.length
+	if ctx == nil {
+		g.Options.Ctx, g.Options.cancel = context.WithTimeout(context.Background(), g.Options.Timeout)
+	} else {
+		g.Options.Ctx, g.Options.cancel = context.WithTimeout(ctx, g.Options.Timeout)
+	}
 
 	for _, fg := range g.fns {
 		go func() {
@@ -134,7 +141,7 @@ func (g *noErr) RunWait() {
 		select {
 		case <-g.Options.Ctx.Done():
 			if g.Options.Ctx.Err() != nil {
-				log.Println("Context error ", g.Options.Ctx.Err().Error())
+				log.Println("Context done. Reason:", g.Options.Ctx.Err().Error())
 			}
 			return
 
@@ -152,9 +159,14 @@ func (g *noErr) RunWait() {
 
 // RunWaitErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
-func (g *withErr) RunWaitErr() (errGroup error) {
+func (g *withErr) RunWaitErr(ctx context.Context) (errGroup error) {
 	var err error
 	count := g.length
+	if ctx == nil {
+		g.Options.Ctx, g.Options.cancel = context.WithTimeout(context.Background(), g.Options.Timeout)
+	} else {
+		g.Options.Ctx, g.Options.cancel = context.WithTimeout(ctx, g.Options.Timeout)
+	}
 
 	for _, fg := range g.fns {
 		go func() {
@@ -174,7 +186,7 @@ func (g *withErr) RunWaitErr() (errGroup error) {
 		select {
 		case <-g.Options.Ctx.Done():
 			if g.Options.Ctx.Err() != nil {
-				log.Println("Context error ", g.Options.Ctx.Err().Error())
+				log.Println("Context done. Reason:", g.Options.Ctx.Err().Error())
 			}
 			return
 
