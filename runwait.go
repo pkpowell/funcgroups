@@ -100,9 +100,9 @@ func check(opts *Options) *Options {
 	return opts
 }
 
-// RunWait executes the provided functions concurrently and waits for them all to complete.
+// Run executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
-func (g *noErr) RunWait(pctx context.Context, secs time.Duration) {
+func (g *noErr) Run(pctx context.Context, secs time.Duration) {
 	count := g.length
 	if secs == 0 {
 		g.timeout = time.Second * 10
