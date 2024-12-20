@@ -64,7 +64,7 @@ func TestRunWait(t *testing.T) {
 	t.Run("Context cancellation", func(t *testing.T) {
 		go func() {
 			time.Sleep(2 * time.Second)
-			cancel()
+			fng.cancel()
 		}()
 
 		start := time.Now()

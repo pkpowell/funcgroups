@@ -31,6 +31,8 @@ type noErr struct {
 	*Options
 	length int
 	wait   chan struct{}
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func New(fns []Function, opts *Options) *noErr {
@@ -81,15 +83,18 @@ type withErr struct {
 	*Options
 	length int
 	wait   chan struct{}
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 var timeout = 5 * time.Second
-var ctx, cancel = context.WithTimeout(context.Background(), timeout)
+
+// var ctx, cancel = context.WithTimeout(context.Background(), timeout)
 
 // Defaults
 func DefaultOptions() *Options {
 	return &Options{
-		Timeout: timeout,
+		Timeout: 5 * time.Second,
 		Debug:   false,
 	}
 }
@@ -101,7 +106,7 @@ func check(opts *Options) *Options {
 	}
 
 	if opts.Timeout == 0 {
-		opts.Timeout = timeout
+		opts.Timeout = 5 * time.Second
 	}
 
 	// if opts.Ctx == nil {
@@ -115,16 +120,16 @@ func check(opts *Options) *Options {
 
 // RunWait executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
-func (g *noErr) RunWait(ctx context.Context, secs time.Duration) {
+func (g *noErr) RunWait(pctx context.Context, secs time.Duration) {
 	count := g.length
 	if secs != 0 {
 		timeout = time.Second * secs
 	}
 
-	if ctx == nil {
-		ctx, cancel = context.WithTimeout(context.Background(), timeout)
+	if pctx == nil {
+		g.ctx, g.cancel = context.WithTimeout(context.Background(), timeout)
 	} else {
-		ctx, cancel = context.WithTimeout(ctx, timeout)
+		g.ctx, g.cancel = context.WithTimeout(pctx, timeout)
 	}
 
 	for _, fg := range g.fns {
@@ -141,9 +146,14 @@ func (g *noErr) RunWait(ctx context.Context, secs time.Duration) {
 
 	for {
 		select {
-		case <-ctx.Done():
-			if ctx.Err() != nil {
-				log.Println("Context done. Reason:", ctx.Err().Error())
+		case <-g.ctx.Done():
+			switch g.ctx.Err() {
+			case nil, context.Canceled:
+				if g.Options.Debug {
+					log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
+				}
+			default:
+				log.Println("Context done error:", g.ctx.Err().Error())
 			}
 			return
 
@@ -153,7 +163,7 @@ func (g *noErr) RunWait(ctx context.Context, secs time.Duration) {
 				if g.Options.Debug {
 					log.Println("All " + strconv.Itoa(g.length) + " jobs done")
 				}
-				cancel()
+				g.cancel()
 			}
 		}
 	}
@@ -161,16 +171,16 @@ func (g *noErr) RunWait(ctx context.Context, secs time.Duration) {
 
 // RunWaitErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
-func (g *withErr) RunWaitErr(ctx context.Context, secs time.Duration) (errGroup error) {
+func (g *withErr) RunWaitErr(pctx context.Context, secs time.Duration) (errGroup error) {
 	var err error
 	count := g.length
 	if secs != 0 {
 		timeout = time.Second * secs
 	}
-	if ctx == nil {
-		ctx, cancel = context.WithTimeout(context.Background(), timeout)
+	if pctx == nil {
+		g.ctx, g.cancel = context.WithTimeout(context.Background(), timeout)
 	} else {
-		ctx, cancel = context.WithTimeout(ctx, timeout)
+		g.ctx, g.cancel = context.WithTimeout(pctx, timeout)
 	}
 
 	for _, fg := range g.fns {
@@ -189,19 +199,22 @@ func (g *withErr) RunWaitErr(ctx context.Context, secs time.Duration) (errGroup 
 
 	for {
 		select {
-		case <-ctx.Done():
-			if ctx.Err() != nil {
-				log.Println("Context done. Reason:", ctx.Err().Error())
+		case <-g.ctx.Done():
+			switch g.ctx.Err() {
+			case nil, context.Canceled:
+				if g.Options.Debug {
+					log.Println("All " + strconv.Itoa(g.length) + " jobs done. No errors")
+				}
+			default:
+				log.Println("Context done error:", g.ctx.Err().Error())
 			}
+
 			return
 
 		case <-g.wait:
 			count--
 			if count == 0 {
-				if g.Options.Debug {
-					log.Println("All " + strconv.Itoa(g.length) + " jobs done")
-				}
-				cancel()
+				g.cancel()
 			}
 		}
 	}
