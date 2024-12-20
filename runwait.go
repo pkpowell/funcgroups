@@ -137,7 +137,7 @@ func (g *noErr) RunWait(pctx context.Context, secs time.Duration) {
 					log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
 				}
 			default:
-				log.Println("Context done error:", g.ctx.Err().Error())
+				log.Println("Context error:", g.ctx.Err().Error())
 			}
 
 			return
@@ -191,7 +191,7 @@ func (g *withErr) RunWaitErr(pctx context.Context, secs time.Duration) (errGroup
 					log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
 				}
 			default:
-				log.Println("Context done error:", g.ctx.Err().Error())
+				log.Println("Context error:", g.ctx.Err().Error())
 			}
 
 			return
