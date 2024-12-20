@@ -220,3 +220,16 @@ func timer(g groupNoErr) {
 	elapsed := time.Since(start)
 	log.Println(g.name, elapsed)
 }
+
+func Time(f Function) {
+	start := time.Now()
+	f()
+	log.Println("Elapsed time:", time.Since(start))
+}
+
+func TimeWithErr(f FunctionErr) (err error) {
+	start := time.Now()
+	err = f()
+	log.Println("Elapsed time:", time.Since(start))
+	return
+}
