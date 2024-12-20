@@ -15,10 +15,7 @@ type Function func()
 type FunctionErr func() error
 
 type Options struct {
-	// Timeout time.Duration
-	// Ctx     context.Context
 	Debug bool
-	// cancel  context.CancelFunc
 }
 
 type groupNoErr struct {
@@ -27,17 +24,17 @@ type groupNoErr struct {
 }
 
 type noErr struct {
-	fns []groupNoErr
 	*Options
-	length int
-	wait   chan struct{}
-	ctx    context.Context
-	cancel context.CancelFunc
+	fns     []groupNoErr
+	length  int
+	wait    chan struct{}
+	ctx     context.Context
+	cancel  context.CancelFunc
+	timeout time.Duration
 }
 
 func New(fns []Function, opts *Options) *noErr {
 	opts = check(opts)
-	log.Println("opts", opts)
 	var noErr = &noErr{
 		Options: opts,
 		fns:     make([]groupNoErr, len(fns)),
@@ -56,7 +53,6 @@ func New(fns []Function, opts *Options) *noErr {
 
 func NewWithErr(fns []FunctionErr, opts *Options) *withErr {
 	opts = check(opts)
-	log.Println("opts", opts)
 	var withErr = &withErr{
 		Options: opts,
 		fns:     make([]funcWithErr, len(fns)),
@@ -81,15 +77,12 @@ type funcWithErr struct {
 type withErr struct {
 	fns []funcWithErr
 	*Options
-	length int
-	wait   chan struct{}
-	ctx    context.Context
-	cancel context.CancelFunc
+	length  int
+	wait    chan struct{}
+	ctx     context.Context
+	cancel  context.CancelFunc
+	timeout time.Duration
 }
-
-var timeout = 5 * time.Second
-
-// var ctx, cancel = context.WithTimeout(context.Background(), timeout)
 
 // Defaults
 func DefaultOptions() *Options {
@@ -112,20 +105,20 @@ func check(opts *Options) *Options {
 func (g *noErr) RunWait(pctx context.Context, secs time.Duration) {
 	count := g.length
 	if secs == 0 {
-		timeout = time.Second * 10
+		g.timeout = time.Second * 10
 	} else {
-		timeout = time.Second * secs
+		g.timeout = time.Second * secs
 	}
 
 	if pctx == nil {
-		g.ctx, g.cancel = context.WithTimeout(context.Background(), timeout)
+		g.ctx, g.cancel = context.WithTimeout(context.Background(), g.timeout)
 	} else {
-		g.ctx, g.cancel = context.WithTimeout(pctx, timeout)
+		g.ctx, g.cancel = context.WithTimeout(pctx, g.timeout)
 	}
 
 	for _, fg := range g.fns {
 		go func() {
-			if g.Options.Debug {
+			if g.Debug {
 				timer(fg)
 			} else {
 				fg.fn()
@@ -140,7 +133,7 @@ func (g *noErr) RunWait(pctx context.Context, secs time.Duration) {
 		case <-g.ctx.Done():
 			switch g.ctx.Err() {
 			case nil, context.Canceled:
-				if g.Options.Debug {
+				if g.Debug {
 					log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
 				}
 			default:
@@ -152,9 +145,6 @@ func (g *noErr) RunWait(pctx context.Context, secs time.Duration) {
 		case <-g.wait:
 			count--
 			if count == 0 {
-				if g.Options.Debug {
-					log.Println("All " + strconv.Itoa(g.length) + " jobs done")
-				}
 				g.cancel()
 			}
 		}
@@ -167,20 +157,20 @@ func (g *withErr) RunWaitErr(pctx context.Context, secs time.Duration) (errGroup
 	var err error
 	count := g.length
 	if secs == 0 {
-		timeout = time.Second * 10
+		g.timeout = time.Second * 10
 	} else {
-		timeout = time.Second * secs
+		g.timeout = time.Second * secs
 	}
 
 	if pctx == nil {
-		g.ctx, g.cancel = context.WithTimeout(context.Background(), timeout)
+		g.ctx, g.cancel = context.WithTimeout(context.Background(), g.timeout)
 	} else {
-		g.ctx, g.cancel = context.WithTimeout(pctx, timeout)
+		g.ctx, g.cancel = context.WithTimeout(pctx, g.timeout)
 	}
 
 	for _, fg := range g.fns {
 		go func() {
-			if g.Options.Debug {
+			if g.Debug {
 				err = timerWithErr(fg)
 			} else {
 				err = fg.fn()
@@ -197,8 +187,8 @@ func (g *withErr) RunWaitErr(pctx context.Context, secs time.Duration) (errGroup
 		case <-g.ctx.Done():
 			switch g.ctx.Err() {
 			case nil, context.Canceled:
-				if g.Options.Debug {
-					log.Println("All " + strconv.Itoa(g.length) + " jobs done. No errors")
+				if g.Debug {
+					log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
 				}
 			default:
 				log.Println("Context done error:", g.ctx.Err().Error())
