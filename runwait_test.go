@@ -51,7 +51,7 @@ func TestRunWait(t *testing.T) {
 	})
 	t.Run("Timeout scenario", func(t *testing.T) {
 		start := time.Now()
-		fng.RunWait()
+		fng.RunWait(context.Background())
 		duration := time.Since(start)
 		if duration > 3*time.Second+100*time.Millisecond {
 			t.Errorf("RunWait didn't respect timeout. Took %v, expected around 3s", duration)
@@ -71,7 +71,7 @@ func TestRunWait(t *testing.T) {
 		}()
 
 		start := time.Now()
-		fng.RunWait()
+		fng.RunWait(context.Background())
 		duration := time.Since(start)
 		if duration > 2*time.Second+100*time.Millisecond {
 			t.Errorf("RunWait didn't respect context cancellation. Took %v, expected around 2s", duration)
@@ -84,12 +84,12 @@ func TestRunWait(t *testing.T) {
 	})
 
 	t.Run("Empty function list", func(t *testing.T) {
-		fng.RunWait()
+		fng.RunWait(context.Background())
 	})
 
 	fng = New([]Function{one, two}, nil)
 	t.Run("Nil options", func(t *testing.T) {
-		fng.RunWait()
+		fng.RunWait(context.Background())
 		// This test passes if it doesn't panic and uses default options
 	})
 }
@@ -101,5 +101,5 @@ func RunWait_test(t *testing.T) {
 		Debug:   true,
 	})
 	t.Log("RunWait_test")
-	fng.RunWait()
+	fng.RunWait(context.Background())
 }
