@@ -15,7 +15,7 @@ type Function func()
 type FunctionErr func() error
 
 type Options struct {
-	Timeout time.Duration
+	// Timeout time.Duration
 	// Ctx     context.Context
 	Debug bool
 	// cancel  context.CancelFunc
@@ -94,8 +94,7 @@ var timeout = 5 * time.Second
 // Defaults
 func DefaultOptions() *Options {
 	return &Options{
-		Timeout: 5 * time.Second,
-		Debug:   false,
+		Debug: false,
 	}
 }
 
@@ -105,16 +104,6 @@ func check(opts *Options) *Options {
 		return DefaultOptions()
 	}
 
-	if opts.Timeout == 0 {
-		opts.Timeout = 5 * time.Second
-	}
-
-	// if opts.Ctx == nil {
-	// 	opts.Ctx, opts.cancel = context.WithTimeout(context.Background(), opts.Timeout)
-	// } else {
-	// 	opts.Ctx, opts.cancel = context.WithTimeout(opts.Ctx, opts.Timeout)
-	// }
-
 	return opts
 }
 
@@ -122,7 +111,9 @@ func check(opts *Options) *Options {
 // The functions are executed in separate goroutines. No errors are collected.
 func (g *noErr) RunWait(pctx context.Context, secs time.Duration) {
 	count := g.length
-	if secs != 0 {
+	if secs == 0 {
+		timeout = time.Second * 10
+	} else {
 		timeout = time.Second * secs
 	}
 
@@ -155,6 +146,7 @@ func (g *noErr) RunWait(pctx context.Context, secs time.Duration) {
 			default:
 				log.Println("Context done error:", g.ctx.Err().Error())
 			}
+
 			return
 
 		case <-g.wait:
@@ -174,9 +166,12 @@ func (g *noErr) RunWait(pctx context.Context, secs time.Duration) {
 func (g *withErr) RunWaitErr(pctx context.Context, secs time.Duration) (errGroup error) {
 	var err error
 	count := g.length
-	if secs != 0 {
+	if secs == 0 {
+		timeout = time.Second * 10
+	} else {
 		timeout = time.Second * secs
 	}
+
 	if pctx == nil {
 		g.ctx, g.cancel = context.WithTimeout(context.Background(), timeout)
 	} else {

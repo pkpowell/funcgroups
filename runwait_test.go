@@ -45,8 +45,7 @@ func TestRunWait(t *testing.T) {
 	})
 
 	fng := New(allFuncs, &Options{
-		Timeout: 3 * time.Second,
-		Debug:   true,
+		Debug: true,
 	})
 	t.Run("Timeout scenario", func(t *testing.T) {
 		start := time.Now()
@@ -58,8 +57,7 @@ func TestRunWait(t *testing.T) {
 	})
 
 	fng = New(allFuncs, &Options{
-		Timeout: 10 * time.Second,
-		Debug:   true,
+		Debug: true,
 	})
 	t.Run("Context cancellation", func(t *testing.T) {
 		go func() {
@@ -68,19 +66,19 @@ func TestRunWait(t *testing.T) {
 		}()
 
 		start := time.Now()
-		fng.RunWait(context.Background(), 3)
+		fng.RunWait(context.Background(), 10)
 		duration := time.Since(start)
 		if duration > 2*time.Second+100*time.Millisecond {
 			t.Errorf("RunWait didn't respect context cancellation. Took %v, expected around 2s", duration)
 		}
 	})
+
 	fng = New([]Function{}, &Options{
-		Timeout: 1 * time.Second,
-		Debug:   true,
+		Debug: true,
 	})
 
 	t.Run("Empty function list", func(t *testing.T) {
-		fng.RunWait(context.Background(), 3)
+		fng.RunWait(context.Background(), 1)
 	})
 
 	fng = New([]Function{one, two}, nil)
@@ -92,9 +90,8 @@ func TestRunWait(t *testing.T) {
 
 func RunWait_test(t *testing.T) {
 	fng := New(allFuncs, &Options{
-		Timeout: 2 * time.Second,
-		Debug:   true,
+		Debug: true,
 	})
 	t.Log("RunWait_test")
-	fng.RunWait(context.Background(), 4)
+	fng.RunWait(context.Background(), 2)
 }
