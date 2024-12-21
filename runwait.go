@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"runtime"
-	"strconv"
 	"time"
 
 	"github.com/goccy/go-reflect"
@@ -133,9 +132,9 @@ func (g *noErr) Run(pctx context.Context, secs time.Duration) {
 		case <-g.ctx.Done():
 			switch g.ctx.Err() {
 			case nil, context.Canceled:
-				if g.Debug {
-					log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
-				}
+				// if g.Debug {
+				// 	log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
+				// }
 			default:
 				log.Println("Context error:", g.ctx.Err().Error())
 			}
@@ -187,9 +186,9 @@ func (g *withErr) RunWaitErr(pctx context.Context, secs time.Duration) (errGroup
 		case <-g.ctx.Done():
 			switch g.ctx.Err() {
 			case nil, context.Canceled:
-				if g.Debug {
-					log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
-				}
+				// if g.Debug {
+				// 	log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
+				// }
 			default:
 				log.Println("Context error:", g.ctx.Err().Error())
 			}
@@ -224,12 +223,12 @@ func timer(g groupNoErr) {
 func Time(f Function, n string) {
 	start := time.Now()
 	f()
-	log.Println("Elapsed time:", time.Since(start))
+	log.Println(n, time.Since(start))
 }
 
 func TimeWithErr(f FunctionErr, n string) (err error) {
 	start := time.Now()
 	err = f()
-	log.Println("Elapsed time:", time.Since(start))
+	log.Println(n, time.Since(start))
 	return
 }
