@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	"log"
-	"runtime"
 	"time"
 
-	"github.com/goccy/go-reflect"
+	"tlog.app/go/loc"
 )
 
 type Function func()
@@ -42,8 +41,10 @@ func New(fns []Function, opts *Options) *noErr {
 	}
 
 	for i, fn := range fns {
+		name, _, _ := loc.FuncEntryFromFunc(fn).NameFileLine()
+		// log.Println("name", name, "file", file, "line", line)
 		noErr.fns[i] = groupNoErr{
-			name: runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name(),
+			name: name,
 			fn:   fn,
 		}
 	}
@@ -60,8 +61,10 @@ func NewWithErr(fns []FunctionErr, opts *Options) *withErr {
 	}
 
 	for i, fn := range fns {
+		name, _, _ := loc.FuncEntryFromFunc(fn).NameFileLine()
+		// log.Println("name", name, "file", file, "line", line)
 		withErr.fns[i] = funcWithErr{
-			name: runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name(),
+			name: name,
 			fn:   fn,
 		}
 	}
