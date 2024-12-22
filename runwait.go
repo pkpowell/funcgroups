@@ -153,9 +153,9 @@ func (g *noErr) Run(pctx context.Context, secs time.Duration) {
 	}
 }
 
-// RunWaitErr executes the provided functions concurrently and waits for them all to complete.
+// RunErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
-func (g *withErr) RunWaitErr(pctx context.Context, secs time.Duration) (errGroup error) {
+func (g *withErr) RunErr(pctx context.Context, secs time.Duration) (errGroup error) {
 	var err error
 	count := g.length
 	if secs == 0 {
