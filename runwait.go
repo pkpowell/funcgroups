@@ -44,7 +44,6 @@ func New(fns []Function, opts *Options) *noErr {
 
 	for i, fn := range fns {
 		name, _, _ := loc.FuncEntryFromFunc(fn).NameFileLine()
-		// log.Println("name", name, "file", file, "line", line)
 		noErr.fns[i] = groupNoErr{
 			name: name,
 			fn:   fn,
