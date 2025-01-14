@@ -9,6 +9,8 @@ import (
 	"tlog.app/go/loc"
 )
 
+const defaultTimeout = 10
+
 type Function func()
 type FunctionErr func() error
 
@@ -62,7 +64,6 @@ func NewWithErr(fns []FunctionErr, opts *Options) *withErr {
 
 	for i, fn := range fns {
 		name, _, _ := loc.FuncEntryFromFunc(fn).NameFileLine()
-		// log.Println("name", name, "file", file, "line", line)
 		withErr.fns[i] = funcWithErr{
 			name: name,
 			fn:   fn,
@@ -104,18 +105,18 @@ func check(opts *Options) *Options {
 
 // Run executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
-func (g *noErr) Run(pctx context.Context, secs time.Duration) {
+func (g *noErr) Run(ctx context.Context, seconds time.Duration) {
 	count := g.length
-	if secs == 0 {
-		g.timeout = time.Second * 10
+	if seconds == 0 {
+		g.timeout = time.Second * defaultTimeout
 	} else {
-		g.timeout = time.Second * secs
+		g.timeout = time.Second * seconds
 	}
 
-	if pctx == nil {
+	if ctx == nil {
 		g.ctx, g.cancel = context.WithTimeout(context.Background(), g.timeout)
 	} else {
-		g.ctx, g.cancel = context.WithTimeout(pctx, g.timeout)
+		g.ctx, g.cancel = context.WithTimeout(ctx, g.timeout)
 	}
 
 	for _, fg := range g.fns {
@@ -135,9 +136,6 @@ func (g *noErr) Run(pctx context.Context, secs time.Duration) {
 		case <-g.ctx.Done():
 			switch g.ctx.Err() {
 			case nil, context.Canceled:
-				// if g.Debug {
-				// 	log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
-				// }
 			default:
 				log.Println("Context error:", g.ctx.Err().Error())
 			}
@@ -155,19 +153,19 @@ func (g *noErr) Run(pctx context.Context, secs time.Duration) {
 
 // RunErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
-func (g *withErr) RunErr(pctx context.Context, secs time.Duration) (errGroup error) {
+func (g *withErr) RunErr(ctx context.Context, seconds time.Duration) (errGroup error) {
 	var err error
 	count := g.length
-	if secs == 0 {
-		g.timeout = time.Second * 10
+	if seconds == 0 {
+		g.timeout = time.Second * defaultTimeout
 	} else {
-		g.timeout = time.Second * secs
+		g.timeout = time.Second * seconds
 	}
 
-	if pctx == nil {
+	if ctx == nil {
 		g.ctx, g.cancel = context.WithTimeout(context.Background(), g.timeout)
 	} else {
-		g.ctx, g.cancel = context.WithTimeout(pctx, g.timeout)
+		g.ctx, g.cancel = context.WithTimeout(ctx, g.timeout)
 	}
 
 	for _, fg := range g.fns {
@@ -189,9 +187,6 @@ func (g *withErr) RunErr(pctx context.Context, secs time.Duration) (errGroup err
 		case <-g.ctx.Done():
 			switch g.ctx.Err() {
 			case nil, context.Canceled:
-				// if g.Debug {
-				// 	log.Println(strconv.Itoa(g.length) + " jobs done. No errors")
-				// }
 			default:
 				log.Println("Context error:", g.ctx.Err().Error())
 			}
