@@ -23,7 +23,7 @@ type groupNoErr struct {
 	name string
 }
 
-type noErr struct {
+type FuncsNoErrs struct {
 	*Options
 	fns     []groupNoErr
 	length  int
@@ -33,9 +33,11 @@ type noErr struct {
 	timeout time.Duration
 }
 
-func New(fns []Function, opts *Options) *noErr {
+// New creates a new instance of FuncsNoErrs.
+// The functions are executed concurrently, no errors are collected.
+func New(fns []Function, opts *Options) *FuncsNoErrs {
 	opts = check(opts)
-	var noErr = &noErr{
+	var noErr = &FuncsNoErrs{
 		Options: opts,
 		fns:     make([]groupNoErr, len(fns)),
 		length:  len(fns),
@@ -52,9 +54,11 @@ func New(fns []Function, opts *Options) *noErr {
 	return noErr
 }
 
-func NewWithErr(fns []FunctionErr, opts *Options) *withErr {
+// NewWithErr creates a new instance of FuncsWithErr.
+// The functions are executed concurrently, errors are collected.
+func NewWithErr(fns []FunctionErr, opts *Options) *FuncsWithErr {
 	opts = check(opts)
-	var withErr = &withErr{
+	var withErr = &FuncsWithErr{
 		Options: opts,
 		fns:     make([]funcWithErr, len(fns)),
 		length:  len(fns),
@@ -76,7 +80,7 @@ type funcWithErr struct {
 	name string
 }
 
-type withErr struct {
+type FuncsWithErr struct {
 	fns []funcWithErr
 	*Options
 	length  int
@@ -104,7 +108,7 @@ func check(opts *Options) *Options {
 
 // Run executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. No errors are collected.
-func (g *noErr) Run(ctx context.Context, seconds time.Duration) {
+func (g *FuncsNoErrs) Run(ctx context.Context, seconds time.Duration) {
 	count := g.length
 	if seconds == 0 {
 		g.timeout = time.Second * defaultTimeout
@@ -152,7 +156,7 @@ func (g *noErr) Run(ctx context.Context, seconds time.Duration) {
 
 // RunErr executes the provided functions concurrently and waits for them all to complete.
 // The functions are executed in separate goroutines. Errors are collected.
-func (g *withErr) RunErr(ctx context.Context, seconds time.Duration) (errGroup error) {
+func (g *FuncsWithErr) RunErr(ctx context.Context, seconds time.Duration) (errGroup error) {
 	var err error
 	count := g.length
 	if seconds == 0 {
